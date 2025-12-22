@@ -11,14 +11,22 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   bool _loading = false;
+
+  late final AnimationController _animController =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+
+  late final Animation<double> _fade =
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut);
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(() => setState(() {}));
+    _animController.forward();
   }
 
   void _analyzeMessage() async {
@@ -30,11 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Navigator.push(
       context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) =>
-            ResultScreen(message: _controller.text),
-        transitionsBuilder: (_, animation, __, child) =>
-            FadeTransition(opacity: animation, child: child),
+      MaterialPageRoute(
+        builder: (_) => ResultScreen(message: _controller.text),
       ),
     );
   }
@@ -44,31 +49,37 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: GradientBackground(
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: MediaQuery.of(context).padding.top + 20,
+            bottom: MediaQuery.of(context).padding.bottom + 20,
+          ),
+          child: FadeTransition(
+            opacity: _fade,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 12),
                 Text(
                   'VernacuGuard',
+                  textAlign: TextAlign.center,
                   style: Theme.of(context)
                       .textTheme
                       .headlineMedium
                       ?.copyWith(color: Colors.white),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
-                  'Detect scams in regional & mixed languages',
+                  'Detect scam messages in any Indian language',
+                  textAlign: TextAlign.center,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
                       ?.copyWith(color: Colors.white70),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 32),
+
                 Card(
                   elevation: 6,
                   shape: RoundedRectangleBorder(
@@ -79,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         MessageInput(controller: _controller),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
                         AnalyzeButton(
                           enabled: _controller.text.trim().isNotEmpty,
                           loading: _loading,

@@ -36,10 +36,6 @@ class AnalysisService {
 
     final String language = _detectLanguage(message);
 
-    // -------------------------------
-    // RISK SCORING LOGIC
-    // -------------------------------
-
     int riskScore = 0;
 
     if (hasUrl) riskScore += 1;
@@ -47,12 +43,7 @@ class AnalysisService {
     if (hasAuthorityWords) riskScore += 2;
     if (hasOtpRequest) riskScore += 3;
 
-    // Regional language scams often target trust
     if (language != 'English') riskScore += 1;
-
-    // -------------------------------
-    // RISK CLASSIFICATION
-    // -------------------------------
 
     if (riskScore <= 1) {
       return _result(
@@ -60,7 +51,7 @@ class AnalysisService {
         language: language,
         tactic: 'None',
         explanation:
-            'This message does not show common scam patterns such as urgency, impersonation, or sensitive data requests.',
+            'This message does not show common scam indicators such as urgency, impersonation, or sensitive data requests.',
       );
     }
 
@@ -70,7 +61,7 @@ class AnalysisService {
         language: language,
         tactic: 'Mild Persuasion',
         explanation:
-            'The message contains mild persuasive language but does not strongly indicate malicious intent.',
+            'The message contains some persuasive language but does not strongly indicate malicious intent.',
       );
     }
 
@@ -80,7 +71,7 @@ class AnalysisService {
         language: language,
         tactic: 'Urgency / Authority',
         explanation:
-            'This message uses urgency or authority cues commonly seen in scam attempts. Caution is advised.',
+            'This message uses urgency or authority cues commonly seen in scam attempts.',
       );
     }
 
@@ -90,7 +81,7 @@ class AnalysisService {
         language: language,
         tactic: 'Social Engineering',
         explanation:
-            'The message shows multiple social engineering indicators such as urgency, impersonation, or suspicious links.',
+            'Multiple social engineering indicators are present, including urgency, impersonation, or suspicious links.',
       );
     }
 
@@ -103,23 +94,44 @@ class AnalysisService {
     );
   }
 
-  // -------------------------------
-  // HELPER FUNCTIONS
-  // -------------------------------
+  // -----------------------
+  // Helper methods
+  // -----------------------
 
   static bool _containsAny(String text, List<String> keywords) {
     return keywords.any((word) => text.contains(word));
   }
 
   static String _detectLanguage(String text) {
-    // Devanagari (Hindi, Marathi, etc.)
-    final devanagariRegex = RegExp(r'[ऀ-ॿ]');
-    if (devanagariRegex.hasMatch(text)) {
-      return 'Hindi / Regional (Devanagari)';
+    if (RegExp(r'[ऀ-ॿ]').hasMatch(text)) {
+      return 'Hindi / Marathi (Devanagari)';
+    }
+    if (RegExp(r'[அ-௿]').hasMatch(text)) {
+      return 'Tamil';
+    }
+    if (RegExp(r'[ఀ-౿]').hasMatch(text)) {
+      return 'Telugu';
+    }
+    if (RegExp(r'[ಀ-೿]').hasMatch(text)) {
+      return 'Kannada';
+    }
+    if (RegExp(r'[অ-৿]').hasMatch(text)) {
+      return 'Bengali';
+    }
+    if (RegExp(r'[ਗ-੿]').hasMatch(text)) {
+      return 'Punjabi (Gurmukhi)';
+    }
+    if (RegExp(r'[઀-૿]').hasMatch(text)) {
+      return 'Gujarati';
     }
 
-    // Simple Hinglish heuristic
-    if (_containsAny(text, ['hai', 'karna', 'aap', 'kripya', 'turant'])) {
+    if (_containsAny(text.toLowerCase(), [
+      'hai',
+      'karna',
+      'aap',
+      'kripya',
+      'turant',
+    ])) {
       return 'Hinglish';
     }
 
@@ -140,4 +152,5 @@ class AnalysisService {
     };
   }
 }
+
 
