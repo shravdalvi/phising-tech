@@ -16,105 +16,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            'Settings',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 24),
+    return Scaffold(
+      backgroundColor: Colors.white,
 
-          // Alerts toggle
-          SwitchListTile(
-            title: const Text('Enable Scam Alerts'),
-            subtitle: const Text('Show warnings for risky messages'),
-            value: alertsEnabled,
-            onChanged: (value) {
-              setState(() => alertsEnabled = value);
-            },
-          ),
-
-          // Crowd-source toggle
-          SwitchListTile(
-            title: const Text('Crowd-source Scam Reports'),
-            subtitle: const Text(
-                'Help improve detection by sharing anonymized patterns'),
-            value: crowdSourceEnabled,
-            onChanged: (value) {
-              setState(() => crowdSourceEnabled = value);
-            },
-          ),
-
-          const Divider(height: 32),
-
-          // Risk Sensitivity
-          Text(
-            'Risk Sensitivity',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-
-          RadioListTile<RiskSensitivity>(
-            title: const Text('Low'),
-            subtitle: const Text('Only flag very clear scams'),
-            value: RiskSensitivity.low,
-            groupValue: sensitivity,
-            onChanged: (value) {
-              setState(() => sensitivity = value!);
-            },
-          ),
-          RadioListTile<RiskSensitivity>(
-            title: const Text('Medium'),
-            subtitle: const Text('Balanced detection (recommended)'),
-            value: RiskSensitivity.medium,
-            groupValue: sensitivity,
-            onChanged: (value) {
-              setState(() => sensitivity = value!);
-            },
-          ),
-          RadioListTile<RiskSensitivity>(
-            title: const Text('High'),
-            subtitle: const Text('Flag even slightly suspicious messages'),
-            value: RiskSensitivity.high,
-            groupValue: sensitivity,
-            onChanged: (value) {
-              setState(() => sensitivity = value!);
-            },
-          ),
-
-          const Divider(height: 32),
-
-          // Language info
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language Detection'),
-            subtitle: const Text(
-              'Automatically detects English and major Indian languages',
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // 🔴 TEST BUILD INDICATOR (VERY IMPORTANT)
+            const Text(
+              'TEST BUILD 123',
+              style: TextStyle(
+                fontSize: 30,
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          Card(
-            elevation: 0,
-            color: Colors.black.withOpacity(0.04),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+            Text(
+              'Settings',
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.copyWith(color: Colors.black),
             ),
-            child: const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Your data is analyzed locally or securely via AI. '
-                'Messages are never stored without your consent.',
-                textAlign: TextAlign.center,
+
+            const SizedBox(height: 24),
+
+            SwitchListTile(
+              title: const Text('Enable Scam Alerts'),
+              subtitle: const Text('Show warnings for risky messages'),
+              value: alertsEnabled,
+              onChanged: (value) {
+                setState(() => alertsEnabled = value);
+              },
+            ),
+
+            SwitchListTile(
+              title: const Text('Crowd-source Scam Reports'),
+              subtitle: const Text(
+                'Help improve detection by sharing anonymized patterns',
+              ),
+              value: crowdSourceEnabled,
+              onChanged: (value) {
+                setState(() => crowdSourceEnabled = value);
+              },
+            ),
+
+            const Divider(height: 32),
+
+            Text(
+              'Risk Sensitivity',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: Colors.black),
+            ),
+
+            RadioListTile<RiskSensitivity>(
+              title: const Text('Low'),
+              subtitle: const Text('Only flag very clear scams'),
+              value: RiskSensitivity.low,
+              groupValue: sensitivity,
+              onChanged: (value) {
+                setState(() => sensitivity = value!);
+              },
+            ),
+
+            RadioListTile<RiskSensitivity>(
+              title: const Text('Medium'),
+              subtitle: const Text('Balanced detection (recommended)'),
+              value: RiskSensitivity.medium,
+              groupValue: sensitivity,
+              onChanged: (value) {
+                setState(() => sensitivity = value!);
+              },
+            ),
+
+            RadioListTile<RiskSensitivity>(
+              title: const Text('High'),
+              subtitle: const Text('Flag even slightly suspicious messages'),
+              value: RiskSensitivity.high,
+              groupValue: sensitivity,
+              onChanged: (value) {
+                setState(() => sensitivity = value!);
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            Card(
+              elevation: 0,
+              color: Colors.grey.shade200,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Your data is analyzed locally or securely via AI. '
+                  'Messages are never stored without your consent.',
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-

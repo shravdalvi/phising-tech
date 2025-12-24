@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/message_input.dart';
 import '../widgets/analyze_button.dart';
-import '../widgets/gradient_background.dart';
 import 'result_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -47,60 +46,81 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GradientBackground(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: MediaQuery.of(context).padding.top + 20,
-            bottom: MediaQuery.of(context).padding.bottom + 20,
-          ),
-          child: FadeTransition(
-            opacity: _fade,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'VernacuGuard',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(color: Colors.white),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Detect scam messages in any Indian language',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: Colors.white70),
-                ),
-                const SizedBox(height: 32),
+      // 🔴 DO NOT keep this transparent
+      backgroundColor: const Color(0xFFB39DDB),
 
-                Card(
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+      body: Container(
+        // ⭐ THIS IS THE KEY
+        height: MediaQuery.of(context).size.height,
+        width: double.infinity,
+
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF9C88FF),
+              Color(0xFFC7BFFF),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: FadeTransition(
+              opacity: _fade,
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'VernacuGuard',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineMedium
+                        ?.copyWith(color: Colors.white),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        MessageInput(controller: _controller),
-                        const SizedBox(height: 20),
-                        AnalyzeButton(
-                          enabled: _controller.text.trim().isNotEmpty,
-                          loading: _loading,
-                          onPressed: _analyzeMessage,
-                        ),
-                      ],
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'Detect scam messages in any Indian language',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Colors.white70),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  Card(
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          MessageInput(controller: _controller),
+                          const SizedBox(height: 20),
+                          AnalyzeButton(
+                            enabled: _controller.text.trim().isNotEmpty,
+                            loading: _loading,
+                            onPressed: _analyzeMessage,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+
+                  // ⭐ THIS PUSHES CONTENT & FILLS SPACE
+                  const SizedBox(height: 300),
+                ],
+              ),
             ),
           ),
         ),
