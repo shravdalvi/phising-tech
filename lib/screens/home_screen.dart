@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../widgets/message_input.dart';
 import '../widgets/analyze_button.dart';
+import '../widgets/gradient_background.dart';
+import '../services/analysis_service.dart';
 import 'result_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -10,35 +13,33 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _controller = TextEditingController();
   bool _loading = false;
 
-  late final AnimationController _animController =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-
-  late final Animation<double> _fade =
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut);
-
   @override
-  void initState() {
-    super.initState();
-    _controller.addListener(() => setState(() {}));
-    _animController.forward();
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
-  void _analyzeMessage() async {
-    if (_controller.text.trim().isEmpty) return;
+  void _analyze() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
 
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 2));
+
+    final result = AnalysisService().analyze(text);
+
     setState(() => _loading = false);
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ResultScreen(message: _controller.text),
+        builder: (_) => ResultScreen(
+          analyzedText: text,
+          result: result,
+        ),
       ),
     );
   }
@@ -46,81 +47,40 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 🔴 DO NOT keep this transparent
-      backgroundColor: const Color(0xFFB39DDB),
-
-      body: Container(
-        // ⭐ THIS IS THE KEY
-        height: MediaQuery.of(context).size.height,
-        width: double.infinity,
-
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF9C88FF),
-              Color(0xFFC7BFFF),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-
-        child: SafeArea(
+      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: GradientBackground(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: FadeTransition(
-              opacity: _fade,
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
 
-                  Text(
-                    'VernacuGuard',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(color: Colors.white),
+                const Text(
+                  'VernacuGuard',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
 
-                  const SizedBox(height: 8),
+                const SizedBox(height: 24),
 
-                  Text(
-                    'Detect scam messages in any Indian language',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(color: Colors.white70),
-                  ),
+                MessageInput(controller: _controller),
 
-                  const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
-                  Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          MessageInput(controller: _controller),
-                          const SizedBox(height: 20),
-                          AnalyzeButton(
-                            enabled: _controller.text.trim().isNotEmpty,
-                            loading: _loading,
-                            onPressed: _analyzeMessage,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                AnalyzeButton(
+                  isLoading: _loading,
+                  onPressed: _analyze,
+                ),
 
-                  // ⭐ THIS PUSHES CONTENT & FILLS SPACE
-                  const SizedBox(height: 300),
-                ],
-              ),
+                const SizedBox(height: 32),
+              ],
             ),
           ),
         ),

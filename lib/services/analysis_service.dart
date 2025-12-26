@@ -1,155 +1,91 @@
+class AnalysisResult {
+  final String language;
+  final String risk;
+  final String tactic;
+  final String explanation;
+
+  AnalysisResult({
+    required this.language,
+    required this.risk,
+    required this.tactic,
+    required this.explanation,
+  });
+}
+
 class AnalysisService {
-  static Map<String, String> analyze(String message) {
-    final text = message.toLowerCase();
+  AnalysisResult analyze(String text) {
+    final lower = text.toLowerCase();
 
-    final bool hasUrl =
-        text.contains('http://') || text.contains('https://') || text.contains('www.');
+    // ---------- LANGUAGE DETECTION (RULE-BASED) ----------
+    String language = _detectLanguage(text);
 
-    final bool hasUrgencyWords = _containsAny(text, [
-      'urgent',
-      'immediately',
-      'within 24 hours',
-      'account blocked',
-      'last warning',
-      'final notice',
-      'act now',
-      'verify now',
-      'suspend',
-    ]);
+    // ---------- SCAM TACTIC DETECTION ----------
+    String tactic = _detectTactic(lower);
 
-    final bool hasAuthorityWords = _containsAny(text, [
-      'bank',
-      'upi',
-      'kyc',
-      'income tax',
-      'government',
-      'official',
-      'customer care',
-      'support team',
-    ]);
+    // ---------- RISK LEVEL ----------
+    String risk = _detectRisk(lower);
 
-    final bool hasOtpRequest = _containsAny(text, [
-      'otp',
-      'one time password',
-      'verification code',
-    ]);
+    // ---------- EXPLANATION ----------
+    String explanation =
+        'Detected $tactic patterns in $language language.';
 
-    final String language = _detectLanguage(message);
-
-    int riskScore = 0;
-
-    if (hasUrl) riskScore += 1;
-    if (hasUrgencyWords) riskScore += 2;
-    if (hasAuthorityWords) riskScore += 2;
-    if (hasOtpRequest) riskScore += 3;
-
-    if (language != 'English') riskScore += 1;
-
-    if (riskScore <= 1) {
-      return _result(
-        risk: 'No Risk',
-        language: language,
-        tactic: 'None',
-        explanation:
-            'This message does not show common scam indicators such as urgency, impersonation, or sensitive data requests.',
-      );
-    }
-
-    if (riskScore == 2) {
-      return _result(
-        risk: 'Low',
-        language: language,
-        tactic: 'Mild Persuasion',
-        explanation:
-            'The message contains some persuasive language but does not strongly indicate malicious intent.',
-      );
-    }
-
-    if (riskScore <= 4) {
-      return _result(
-        risk: 'Medium',
-        language: language,
-        tactic: 'Urgency / Authority',
-        explanation:
-            'This message uses urgency or authority cues commonly seen in scam attempts.',
-      );
-    }
-
-    if (riskScore <= 6) {
-      return _result(
-        risk: 'Potential Threat',
-        language: language,
-        tactic: 'Social Engineering',
-        explanation:
-            'Multiple social engineering indicators are present, including urgency, impersonation, or suspicious links.',
-      );
-    }
-
-    return _result(
-      risk: 'High Risk',
+    return AnalysisResult(
       language: language,
-      tactic: 'Phishing / Scam',
-      explanation:
-          'This message strongly resembles known scam or phishing attempts. Do not click links or share personal details.',
+      risk: risk,
+      tactic: tactic,
+      explanation: explanation,
     );
   }
 
-  // -----------------------
-  // Helper methods
-  // -----------------------
+  // ---------------- HELPERS ----------------
 
-  static bool _containsAny(String text, List<String> keywords) {
-    return keywords.any((word) => text.contains(word));
+  String _detectLanguage(String text) {
+    if (RegExp(r'[ऀ-ॿ]').hasMatch(text)) return 'Hindi';
+    if (RegExp(r'[அ-௺]').hasMatch(text)) return 'Tamil';
+    if (RegExp(r'[ক-৿]').hasMatch(text)) return 'Bengali';
+    if (RegExp(r'[అ-౿]').hasMatch(text)) return 'Telugu';
+    return 'English / Hinglish';
   }
 
-  static String _detectLanguage(String text) {
-    if (RegExp(r'[ऀ-ॿ]').hasMatch(text)) {
-      return 'Hindi / Marathi (Devanagari)';
-    }
-    if (RegExp(r'[அ-௿]').hasMatch(text)) {
-      return 'Tamil';
-    }
-    if (RegExp(r'[ఀ-౿]').hasMatch(text)) {
-      return 'Telugu';
-    }
-    if (RegExp(r'[ಀ-೿]').hasMatch(text)) {
-      return 'Kannada';
-    }
-    if (RegExp(r'[অ-৿]').hasMatch(text)) {
-      return 'Bengali';
-    }
-    if (RegExp(r'[ਗ-੿]').hasMatch(text)) {
-      return 'Punjabi (Gurmukhi)';
-    }
-    if (RegExp(r'[઀-૿]').hasMatch(text)) {
-      return 'Gujarati';
+  String _detectTactic(String text) {
+    if (text.contains('otp') ||
+        text.contains('verify') ||
+        text.contains('account')) {
+      return 'Credential Harvesting';
     }
 
-    if (_containsAny(text.toLowerCase(), [
-      'hai',
-      'karna',
-      'aap',
-      'kripya',
-      'turant',
-    ])) {
-      return 'Hinglish';
+    if (text.contains('urgent') ||
+        text.contains('immediately') ||
+        text.contains('act now')) {
+      return 'Urgency / Pressure';
     }
 
-    return 'English';
+    if (text.contains('won') ||
+        text.contains('lottery') ||
+        text.contains('reward')) {
+      return 'Prize / Lottery Scam';
+    }
+
+    if (text.contains('bank') ||
+        text.contains('upi') ||
+        text.contains('payment')) {
+      return 'Financial Fraud';
+    }
+
+    return 'Unknown / Benign';
   }
 
-  static Map<String, String> _result({
-    required String risk,
-    required String language,
-    required String tactic,
-    required String explanation,
-  }) {
-    return {
-      'risk': risk,
-      'language': language,
-      'tactic': tactic,
-      'explanation': explanation,
-    };
+  String _detectRisk(String text) {
+    int score = 0;
+
+    if (text.contains('otp')) score += 2;
+    if (text.contains('urgent')) score += 2;
+    if (text.contains('bank') || text.contains('upi')) score += 2;
+    if (text.contains('click')) score += 1;
+
+    if (score >= 5) return 'High';
+    if (score >= 3) return 'Medium';
+    return 'Low';
   }
 }
 

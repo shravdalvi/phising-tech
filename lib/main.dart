@@ -14,7 +14,7 @@ class VernacuGuardApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   MaterialApp(
+    return MaterialApp(
   debugShowCheckedModeBanner: false,
 
   // ⭐ FORCE LIGHT MODE — NO SYSTEM OVERRIDE
