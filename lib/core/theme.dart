@@ -2,20 +2,39 @@ import 'package:flutter/material.dart';
 
 final ThemeData appTheme = ThemeData(
   useMaterial3: true,
+  scaffoldBackgroundColor: Colors.transparent,
 
-  // ⭐ LIGHT COLOR SCHEME
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: Colors.deepPurple,
-    brightness: Brightness.light,
+  textTheme: const TextTheme(
+    headlineLarge: TextStyle(
+      color: Colors.white,
+      fontSize: 26,
+      fontWeight: FontWeight.bold,
+    ),
+    headlineMedium: TextStyle(
+      color: Colors.white,
+      fontSize: 22,
+      fontWeight: FontWeight.bold,
+    ),
+    bodyLarge: TextStyle(
+      color: Colors.white70,
+      fontSize: 16,
+    ),
+    bodyMedium: TextStyle(
+      color: Colors.white60,
+      fontSize: 14,
+    ),
   ),
 
-  // ⭐ THIS FIXES THE BLACK / DARK ISSUE EVERYWHERE
-  scaffoldBackgroundColor: const Color(0xFFF6F2FF),
+  iconTheme: const IconThemeData(color: Colors.white),
 
   appBarTheme: const AppBarTheme(
-    backgroundColor: Color(0xFFF6F2FF),
+    backgroundColor: Colors.transparent,
     elevation: 0,
-    centerTitle: true,
-    foregroundColor: Colors.black,
+    iconTheme: IconThemeData(color: Colors.white),
+    titleTextStyle: TextStyle(
+      color: Colors.white,
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+    ),
   ),
 );

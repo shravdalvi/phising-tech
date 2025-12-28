@@ -1,127 +1,118 @@
 import 'package:flutter/material.dart';
 
-enum RiskSensitivity { low, medium, high }
-
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final VoidCallback onBack;
+
+  const SettingsScreen({
+    super.key,
+    required this.onBack,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool alertsEnabled = true;
-  bool crowdSourceEnabled = true;
-  RiskSensitivity sensitivity = RiskSensitivity.medium;
+  bool autoScan = true;
+  bool notifications = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      body: Container(
+        color: const Color(0xFF020617),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
 
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+              // 🔙 Back header
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: widget.onBack,
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Settings',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // ⚙️ Settings options
+              _switchTile(
+                'Auto Scan',
+                'Automatically scan links',
+                autoScan,
+                (v) => setState(() => autoScan = v),
+              ),
+
+              _switchTile(
+                'Notifications',
+                'Threat alerts',
+                notifications,
+                (v) => setState(() => notifications = v),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _switchTile(
+    String title,
+    String subtitle,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0f172a),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
           children: [
-            // 🔴 TEST BUILD INDICATOR (VERY IMPORTANT)
-            const Text(
-              'TEST BUILD 123',
-              style: TextStyle(
-                fontSize: 30,
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-
-            const SizedBox(height: 20),
-
-            Text(
-              'Settings',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(color: Colors.black),
-            ),
-
-            const SizedBox(height: 24),
-
-            SwitchListTile(
-              title: const Text('Enable Scam Alerts'),
-              subtitle: const Text('Show warnings for risky messages'),
-              value: alertsEnabled,
-              onChanged: (value) {
-                setState(() => alertsEnabled = value);
-              },
-            ),
-
-            SwitchListTile(
-              title: const Text('Crowd-source Scam Reports'),
-              subtitle: const Text(
-                'Help improve detection by sharing anonymized patterns',
-              ),
-              value: crowdSourceEnabled,
-              onChanged: (value) {
-                setState(() => crowdSourceEnabled = value);
-              },
-            ),
-
-            const Divider(height: 32),
-
-            Text(
-              'Risk Sensitivity',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(color: Colors.black),
-            ),
-
-            RadioListTile<RiskSensitivity>(
-              title: const Text('Low'),
-              subtitle: const Text('Only flag very clear scams'),
-              value: RiskSensitivity.low,
-              groupValue: sensitivity,
-              onChanged: (value) {
-                setState(() => sensitivity = value!);
-              },
-            ),
-
-            RadioListTile<RiskSensitivity>(
-              title: const Text('Medium'),
-              subtitle: const Text('Balanced detection (recommended)'),
-              value: RiskSensitivity.medium,
-              groupValue: sensitivity,
-              onChanged: (value) {
-                setState(() => sensitivity = value!);
-              },
-            ),
-
-            RadioListTile<RiskSensitivity>(
-              title: const Text('High'),
-              subtitle: const Text('Flag even slightly suspicious messages'),
-              value: RiskSensitivity.high,
-              groupValue: sensitivity,
-              onChanged: (value) {
-                setState(() => sensitivity = value!);
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            Card(
-              elevation: 0,
-              color: Colors.grey.shade200,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Your data is analyzed locally or securely via AI. '
-                  'Messages are never stored without your consent.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeColor: Colors.cyan,
             ),
           ],
         ),
