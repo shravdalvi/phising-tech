@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import '../services/stats_service.dart';
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final int totalScans = StatsService.totalScans;
+    final int threatsBlocked = StatsService.threatsDetected;
+    final double protectionRate = StatsService.protectionRate;
+
+    // ---- Derived breakdown (until backend exists) ----
+    final int phishing = (threatsBlocked * 0.6).round();
+    final int maliciousLinks = (threatsBlocked * 0.27).round();
+    final int fakeLogins =
+        threatsBlocked - phishing - maliciousLinks;
+
     return Scaffold(
       backgroundColor: const Color(0xFF050B1E),
       body: SafeArea(
@@ -40,7 +51,7 @@ class StatsScreen extends StatelessWidget {
                   Expanded(
                     child: _statCard(
                       icon: Icons.shield,
-                      title: "247",
+                      title: threatsBlocked.toString(),
                       subtitle: "Threats Blocked",
                       gradient: const LinearGradient(
                         colors: [Color(0xFF0F4C75), Color(0xFF3282B8)],
@@ -51,7 +62,8 @@ class StatsScreen extends StatelessWidget {
                   Expanded(
                     child: _statCard(
                       icon: Icons.trending_up,
-                      title: "98.5%",
+                      title:
+                          "${protectionRate.toStringAsFixed(1)}%",
                       subtitle: "Protection Rate",
                       gradient: const LinearGradient(
                         colors: [Color(0xFF0B8457), Color(0xFF2ECC71)],
@@ -115,20 +127,26 @@ class StatsScreen extends StatelessWidget {
 
                     _progressRow(
                       label: "Phishing Attempts",
-                      value: 156,
-                      percent: 0.7,
+                      value: phishing,
+                      percent: threatsBlocked == 0
+                          ? 0
+                          : phishing / threatsBlocked,
                       color: Colors.redAccent,
                     ),
                     _progressRow(
                       label: "Malicious Links",
-                      value: 68,
-                      percent: 0.45,
+                      value: maliciousLinks,
+                      percent: threatsBlocked == 0
+                          ? 0
+                          : maliciousLinks / threatsBlocked,
                       color: Colors.orangeAccent,
                     ),
                     _progressRow(
                       label: "Fake Login Pages",
-                      value: 23,
-                      percent: 0.25,
+                      value: fakeLogins,
+                      percent: threatsBlocked == 0
+                          ? 0
+                          : fakeLogins / threatsBlocked,
                       color: Colors.amber,
                     ),
                   ],
@@ -152,10 +170,14 @@ class StatsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    _appTile("WhatsApp", 78),
-                    _appTile("Gmail", 64),
-                    _appTile("Chrome", 52),
-                    _appTile("Facebook", 43),
+                    _appTile("WhatsApp",
+                        (phishing * 0.35).round()),
+                    _appTile(
+                        "Gmail", (phishing * 0.28).round()),
+                    _appTile(
+                        "Chrome", (maliciousLinks * 0.6).round()),
+                    _appTile(
+                        "Facebook", (fakeLogins * 0.5).round()),
                   ],
                 ),
               ),
@@ -232,11 +254,15 @@ class StatsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween,
             children: [
-              Text(label, style: const TextStyle(color: Colors.white70)),
+              Text(label,
+                  style:
+                      const TextStyle(color: Colors.white70)),
               Text(value.toString(),
-                  style: const TextStyle(color: Colors.white)),
+                  style:
+                      const TextStyle(color: Colors.white)),
             ],
           ),
           const SizedBox(height: 6),
@@ -281,7 +307,8 @@ class StatsScreen extends StatelessWidget {
             style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(width: 6),
-          const Icon(Icons.warning, color: Colors.amber, size: 18),
+          const Icon(Icons.warning,
+              color: Colors.amber, size: 18),
         ],
       ),
     );

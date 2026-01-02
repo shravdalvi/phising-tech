@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'edit_profile_screen.dart';
 import 'upgrade_pro_screen.dart';
+import 'settings_screen.dart';
+import '../services/user_profile_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,101 +42,33 @@ class ProfileScreen extends StatelessWidget {
                   color: const Color(0xFF0B132B),
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Column(
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Color(0xFF00C2FF),
-                          child: Icon(Icons.person,
-                              color: Colors.white, size: 30),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                "John Doe",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                "john.doe@example.com",
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Color(0xFF00C2FF),
+                      child: Icon(Icons.person,
+                          color: Colors.white, size: 30),
                     ),
-
-                    const SizedBox(height: 14),
-
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF111A2C),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.shield,
-                              color: Colors.white70),
-                          const SizedBox(width: 10),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Free Plan",
-                                    style:
-                                        TextStyle(color: Colors.white)),
-                                Text(
-                                  "Basic protection",
-                                  style: TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 12),
-                                ),
-                              ],
+                          Text(
+                            UserProfileService.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const UpgradeProScreen(),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF9D4EDD),
-                                    Color(0xFFFF5DA2),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                "Upgrade",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold),
-                              ),
+                          const SizedBox(height: 4),
+                          Text(
+                            UserProfileService.email,
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 13,
                             ),
                           ),
                         ],
@@ -146,47 +85,31 @@ class ProfileScreen extends StatelessWidget {
                 context,
                 icon: Icons.edit,
                 title: "Edit Profile",
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => const EditProfileScreen(),
                     ),
                   );
+                  setState(() {}); // 🔑 refresh after edit
                 },
               ),
 
               _tile(
                 context,
-                icon: Icons.lock,
-                title: "Change Password",
-              ),
-
-              _tile(
-                context,
-                icon: Icons.shield,
-                title: "Security Score",
-                trailing: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    "98/100",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              _tile(
-                context,
-                icon: Icons.notifications,
-                title: "Notifications",
+                icon: Icons.settings,
+                title: "Settings",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SettingsScreen(
+                        onBack: () => Navigator.pop(context),
+                      ),
+                    ),
+                  );
+                },
               ),
 
               _tile(
@@ -204,39 +127,7 @@ class ProfileScreen extends StatelessWidget {
                 },
               ),
 
-              _tile(
-                context,
-                icon: Icons.privacy_tip,
-                title: "Privacy Policy",
-              ),
-
-              _tile(
-                context,
-                icon: Icons.info_outline,
-                title: "About PhishGuard",
-              ),
-
-              const SizedBox(height: 30),
-
-              // ===== LOGOUT =====
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: Colors.redAccent),
-                ),
-                child: const Center(
-                  child: Text(
-                    "Logout",
-                    style: TextStyle(
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
               const Center(
                 child: Text(
@@ -257,7 +148,6 @@ class ProfileScreen extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String title,
-    Widget? trailing,
     bool gradient = false,
     VoidCallback? onTap,
   }) {
@@ -285,12 +175,13 @@ class ProfileScreen extends StatelessWidget {
                 style: const TextStyle(color: Colors.white),
               ),
             ),
-            trailing ??
-                const Icon(Icons.arrow_forward_ios,
-                    size: 16, color: Colors.white54),
+            const Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.white54),
           ],
         ),
       ),
     );
   }
 }
+
+

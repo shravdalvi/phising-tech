@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
+import '../services/analysis_service.dart';
+import '../services/stats_service.dart';
 
 class DetectionResultScreen extends StatelessWidget {
-  const DetectionResultScreen({super.key});
+  final String scannedText;
+
+  const DetectionResultScreen({
+    super.key,
+    required this.scannedText,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final result = AnalysisService.analyze(scannedText);
+
+    final bool isHigh = result.risk == 'High';
+    final bool isMedium = result.risk == 'Medium';
+
+    // 🔑 RECORD STATISTICS (once per scan)
+    StatsService.recordScan(
+  riskLevel: result.risk,
+  tactic: result.tactic,
+);
+
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A1020),
       appBar: AppBar(
@@ -22,17 +41,17 @@ class DetectionResultScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // 🔑 IMPORTANT FIX
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _dangerCard(),
+            _statusCard(result, isHigh, isMedium),
             const SizedBox(height: 18),
-            _analyzedUrl(), // ✅ FIXED
+            _analyzedText(scannedText),
             const SizedBox(height: 18),
-            _threatAnalysis(),
+            _threatAnalysis(result),
             const SizedBox(height: 18),
-            _threatIndicators(),
+            _threatIndicators(result.indicators),
             const SizedBox(height: 18),
-            _howDetected(),
+            _howDetected(result.explanation),
             const SizedBox(height: 18),
             _recommendedActions(),
             const SizedBox(height: 28),
@@ -43,15 +62,22 @@ class DetectionResultScreen extends StatelessWidget {
     );
   }
 
-  // 🔴 DANGEROUS CARD
-  Widget _dangerCard() {
+  // ================= STATUS CARD =================
+
+  Widget _statusCard(
+      AnalysisResult r, bool high, bool medium) {
+    final Color accentColor =
+        high ? Colors.redAccent : medium ? Colors.orange : Colors.cyan;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF4A1324), Color(0xFF1A0B14)],
+        gradient: LinearGradient(
+          colors: high
+              ? [const Color(0xFF4A1324), const Color(0xFF1A0B14)]
+              : medium
+                  ? [const Color(0xFF4A3A13), const Color(0xFF1A160B)]
+                  : [const Color(0xFF13324A), const Color(0xFF0B1A2A)],
         ),
         borderRadius: BorderRadius.circular(22),
       ),
@@ -59,39 +85,62 @@ class DetectionResultScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(18),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0x33FF4D6D),
+              color: accentColor.withOpacity(0.2),
             ),
-            child: const Icon(Icons.close, color: Colors.redAccent, size: 36),
+            child: Icon(
+              high
+                  ? Icons.close
+                  : medium
+                      ? Icons.warning
+                      : Icons.check,
+              color: accentColor,
+              size: 36,
+            ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            "Dangerous",
+          Text(
+            high
+                ? "Dangerous"
+                : medium
+                    ? "Suspicious"
+                    : "No Immediate Threat",
             style: TextStyle(
-              color: Colors.redAccent,
+              color: accentColor,
               fontSize: 26,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            "This is a confirmed phishing attempt.\nDo not proceed!",
+          Text(
+            r.explanation,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style:
+                const TextStyle(color: Colors.white70, fontSize: 14),
           ),
           const SizedBox(height: 22),
           Row(
             children: [
-              _metric("Risk Score", "94 / 100", Colors.redAccent),
+              _metric(
+                "Risk Score",
+                "${r.riskScore} / 100",
+                accentColor,
+              ),
               const SizedBox(width: 14),
-              _metric("Confidence", "98%", Colors.cyan),
+              _metric(
+                "Confidence",
+                "${r.confidence}%",
+                accentColor,
+              ),
             ],
           ),
         ],
       ),
     );
   }
+
+  // ================= HELPERS =================
 
   Widget _metric(String title, String value, Color color) {
     return Expanded(
@@ -103,7 +152,8 @@ class DetectionResultScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(title, style: const TextStyle(color: Colors.white60)),
+            Text(title,
+                style: const TextStyle(color: Colors.white60)),
             const SizedBox(height: 6),
             Text(
               value,
@@ -119,86 +169,65 @@ class DetectionResultScreen extends StatelessWidget {
     );
   }
 
-  // 🔗 ANALYZED URL — PROPER LEFT ALIGN (FIXED)
-  Widget _analyzedUrl() {
-    return Container(
-      width: double.infinity, // 🔑 forces full-width
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // 🔑 LEFT ALIGN
-        children: const [
-          Text(
-            "Analyzed URL",
-            style: TextStyle(color: Colors.white60),
-          ),
-          SizedBox(height: 8),
-          Text(
-            "malicious-banking-login.com/secure/account",
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 🛡️ THREAT ANALYSIS
-  Widget _threatAnalysis() {
-    return _sectionContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            "Threat Analysis",
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Attack Type",
-                  style: TextStyle(color: Colors.white60)),
-              Text(
-                "Banking Phishing",
-                style: TextStyle(color: Colors.redAccent),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ⚠️ THREAT INDICATORS
-  Widget _threatIndicators() {
-    final indicators = [
-      "Suspicious domain",
-      "SSL certificate invalid",
-      "Known phishing pattern",
-      "Mimics legitimate site",
-      "Requests sensitive data",
-    ];
-
+  Widget _analyzedText(String text) {
     return _sectionContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Threat Indicators",
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          const Text("Analyzed Content",
+              style: TextStyle(color: Colors.white60)),
+          const SizedBox(height: 8),
+          Text(text,
+              style: const TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  Widget _threatAnalysis(AnalysisResult r) {
+    return _sectionContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Threat Analysis",
+              style: TextStyle(color: Colors.white, fontSize: 16)),
+          const SizedBox(height: 12),
+          _row("Attack Type", r.tactic),
+          _row("Detected Language", r.language),
+          _row("Risk Level", r.risk),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(String a, String b) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(a, style: const TextStyle(color: Colors.white60)),
+        Text(
+          b,
+          style: const TextStyle(
+              color: Colors.redAccent,
+              fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _threatIndicators(List<String> list) {
+    return _sectionContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Threat Indicators",
+              style: TextStyle(color: Colors.white, fontSize: 16)),
           const SizedBox(height: 14),
-          ...indicators.map(
-            (text) => Container(
+          ...list.map(
+            (e) => Container(
               margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFF2A1020),
                 borderRadius: BorderRadius.circular(14),
@@ -209,10 +238,8 @@ class DetectionResultScreen extends StatelessWidget {
                       color: Colors.redAccent, size: 18),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      text,
-                      style: const TextStyle(color: Colors.white),
-                    ),
+                    child: Text(e,
+                        style: const TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -223,53 +250,41 @@ class DetectionResultScreen extends StatelessWidget {
     );
   }
 
-  // 🤖 HOW DETECTED
-  Widget _howDetected() {
-    return _sectionContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            "How we detected this",
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          SizedBox(height: 12),
-          Text(
-            "Our AI-powered system analyzed the URL structure, SSL certificate, "
-            "domain age, and compared it against known phishing patterns. "
-            "The site attempts to mimic a legitimate banking portal to steal credentials.",
-            style: TextStyle(color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ✅ ACTIONS
-  Widget _recommendedActions() {
+  Widget _howDetected(String text) {
     return _sectionContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Recommended Actions",
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          const Text("How we detected this",
+              style: TextStyle(color: Colors.white, fontSize: 16)),
           const SizedBox(height: 12),
-          _actionTile(Icons.block, "Do not click or visit this link"),
-          _actionTile(Icons.flag, "Report this phishing attempt"),
-          _actionTile(Icons.share, "Warn others who received this"),
-          _actionTile(Icons.mark_email_read, "Mark sender as spam"),
+          Text(text,
+              style: const TextStyle(color: Colors.white70)),
         ],
       ),
     );
   }
 
-  Widget _actionTile(IconData icon, String text) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: Colors.cyan),
-      title: Text(text, style: const TextStyle(color: Colors.white)),
+  Widget _recommendedActions() {
+    return _sectionContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text("Recommended Actions",
+              style: TextStyle(color: Colors.white, fontSize: 16)),
+          SizedBox(height: 12),
+          ListTile(
+            leading: Icon(Icons.block, color: Colors.cyan),
+            title: Text("Do not click or visit this link",
+                style: TextStyle(color: Colors.white)),
+          ),
+          ListTile(
+            leading: Icon(Icons.flag, color: Colors.cyan),
+            title: Text("Report this phishing attempt",
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -299,3 +314,5 @@ class DetectionResultScreen extends StatelessWidget {
     );
   }
 }
+
+
